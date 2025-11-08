@@ -1,0 +1,10 @@
+opencv-python
+face_recognition
+pandas
+numpy
+dlib
+tk
+Pillow
+openai
+twilio
+flask

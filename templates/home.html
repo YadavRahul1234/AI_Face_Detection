@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Live Capture - AI Face Detection System</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f4f4f4;
+      }
+      h1 {
+        text-align: center;
+        color: #333;
+      }
+      .container {
+        max-width: 1200px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      .buttons {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      button {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      .result {
+        text-align: center;
+        margin: 20px 0;
+        font-size: 18px;
+        color: #28a745;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      #video {
+        display: none;
+      }
+      #canvas {
+        display: none;
+      }
+      @media (max-width: 768px) {
+        .buttons {
+          flex-direction: column;
+          align-items: center;
+        }
+        button {
+          width: 100%;
+          max-width: 200px;
+        }
+        table {
+          font-size: 14px;
+        }
+        th,
+        td {
+          padding: 6px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🎥 Live Capture - AI Face Detection System 🎥</h1>
+    <div class="container">
+      <div class="buttons">
+        <button onclick="addEmployee()">➕ Add Employee</button>
+        <button onclick="captureAttendance()">🎥 Live Capture</button>
+        <button onclick="openHRDashboard()">📊 Admin Dashboard</button>
+      </div>
+      <div id="result" class="result"></div>
+      <img
+        id="capturedImage"
+        style="display: none; max-width: 300px; margin: 20px auto"
+      />
+
+      <video id="video" autoplay></video>
+      <canvas id="canvas"></canvas>
+    </div>
+
+    <script>
+      let stream;
+
+      async function addEmployee() {
+        const name = prompt("Enter Employee Name:");
+        if (!name) return;
+
+        document.getElementById("result").innerText = "Capturing image...";
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        document.getElementById("video").srcObject = stream;
+        document.getElementById("video").style.display = "block";
+
+        setTimeout(() => {
+          const canvas = document.getElementById("canvas");
+          const video = document.getElementById("video");
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          canvas.getContext("2d").drawImage(video, 0, 0);
+          const imageData = canvas.toDataURL("image/jpeg");
+
+          document.getElementById("capturedImage").src = imageData;
+          document.getElementById("capturedImage").style.display = "block";
+
+          fetch("/add_employee", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, image: imageData }),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              document.getElementById("result").innerText = data.message;
+              stream.getTracks().forEach((track) => track.stop());
+              document.getElementById("video").style.display = "none";
+            });
+        }, 2000);
+      }
+
+      async function captureAttendance() {
+        document.getElementById("result").innerText = "Capturing...";
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        document.getElementById("video").srcObject = stream;
+        document.getElementById("video").style.display = "block";
+
+        setTimeout(() => {
+          const canvas = document.getElementById("canvas");
+          const video = document.getElementById("video");
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          canvas.getContext("2d").drawImage(video, 0, 0);
+          const imageData = canvas.toDataURL("image/jpeg");
+
+          document.getElementById("capturedImage").src = imageData;
+          document.getElementById("capturedImage").style.display = "block";
+
+          fetch("/live_capture", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: imageData }),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.success) {
+                data.results.forEach((result) => {
+                  if (result.type === "employee") {
+                    document.getElementById(
+                      "result"
+                    ).innerText = `Welcome, ${result.name}! Attendance marked.`;
+                  } else {
+                    document.getElementById("result").innerText =
+                      "Visitor detected. Opening chatbot...";
+                    openVisitorChatbot(result.id);
+                  }
+                });
+              } else {
+                document.getElementById("result").innerText = data.message;
+              }
+              stream.getTracks().forEach((track) => track.stop());
+              document.getElementById("video").style.display = "none";
+            });
+        }, 2000);
+      }
+
+      // Removed openChatbot function as chatbot button is removed
+
+      function openHRDashboard() {
+        window.open("/admin_dashboard", "_blank");
+      }
+
+      function openVisitorChatbot(visitorId) {
+        window.open(`/chatbot_page?visitor=${visitorId}`, "_blank");
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,3 @@
+- [x] Add new Flask route `/chatbot/status` in app.py to check for WhatsApp replies for a given visitor_id.
+- [x] Modify chatbot.html to poll the status endpoint every 5 seconds when waiting for a reply.
+- [x] Update the /chatbot route in app.py to handle the 'done' step properly after reply processing.

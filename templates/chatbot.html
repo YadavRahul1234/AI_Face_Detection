@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Chatbot</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      #chat {
+        height: 400px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        padding: 10px;
+      }
+      #message {
+        width: 80%;
+        padding: 10px;
+      }
+      button {
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>AI Chatbot</h1>
+    <div style="text-align: center; margin-bottom: 20px">
+      <button
+        onclick="goBack()"
+        style="
+          padding: 10px 20px;
+          background-color: #6c757d;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+        "
+      >
+        ⬅️ Back to Home
+      </button>
+    </div>
+    <div id="chat">
+      <p>Bot: Welcome! How are you? How can I help you?</p>
+    </div>
+    <input type="text" id="message" placeholder="Type your message..." />
+    <button onclick="sendMessage()">Send</button>
+
+    <script>
+      let visitorId = null;
+      let pollingInterval = null;
+      let firstMessage = true;
+
+      function sendMessage() {
+        const message = document.getElementById("message").value;
+        if (!message) return;
+
+        if (firstMessage) {
+          // Remove the initial welcome message
+          document.getElementById("chat").innerHTML = "";
+          firstMessage = false;
+        }
+
+        appendMessage("You: " + message);
+        document.getElementById("message").value = "";
+
+        fetch("/chatbot", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message, visitor_id: visitorId }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            appendMessage("Bot: " + data.reply);
+            if (data.visitor_id) {
+              visitorId = data.visitor_id;
+            }
+            if (data.reply.includes("Waiting for response")) {
+              startPolling();
+            }
+          });
+      }
+
+      function startPolling() {
+        if (pollingInterval) clearInterval(pollingInterval);
+        pollingInterval = setInterval(() => {
+          fetch(`/chatbot/status?visitor_id=${visitorId}`)
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.reply) {
+                appendMessage("Bot: " + data.reply);
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+              }
+            });
+        }, 5000); // Poll every 5 seconds
+      }
+
+      function appendMessage(msg) {
+        const chat = document.getElementById("chat");
+        chat.innerHTML += "<p>" + msg + "</p>";
+        chat.scrollTop = chat.scrollHeight;
+      }
+
+      document
+        .getElementById("message")
+        .addEventListener("keypress", function (e) {
+          if (e.key === "Enter") sendMessage();
+        });
+
+      function goBack() {
+        if (pollingInterval) clearInterval(pollingInterval);
+        window.location.href = "/admin_dashboard";
+      }
+    </script>
+  </body>
+</html>
