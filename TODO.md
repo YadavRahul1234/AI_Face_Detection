@@ -1,3 +1,9 @@
-- [x] Add new Flask route `/chatbot/status` in app.py to check for WhatsApp replies for a given visitor_id.
-- [x] Modify chatbot.html to poll the status endpoint every 5 seconds when waiting for a reply.
-- [x] Update the /chatbot route in app.py to handle the 'done' step properly after reply processing.
+# TODO List for Implementing .env for API Keys and Adding .gitignore
+
+- [x] Create .env file with extracted API keys from app.py
+- [x] Update requirements.txt to include python-dotenv
+- [x] Modify app.py to load .env and use environment variables for API keys
+- [x] Create .gitignore file and add .env to it
+- [x] Install python-dotenv in the virtual environment
+- [x] Run the app to verify keys are loaded correctly from .env
+- [ ] Ensure .env is not committed to version control

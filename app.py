@@ -13,6 +13,10 @@ import base64
 import numpy as np
 from PIL import Image
 import io
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # ============================
 # CONFIG & DIRECTORIES
@@ -24,13 +28,13 @@ DB_FILE = "attendance.db"
 os.makedirs(EMPLOYEE_DIR, exist_ok=True)
 
 # OpenAI API Key
-OPENAI_API_KEY = "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"
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 # Twilio credentials
-TWILIO_ACCOUNT_SID = "AC7bfc59c8af1283d569104b655839494e"
-TWILIO_AUTH_TOKEN = "0b47710307b84661f5fb6e616c5f8f1a"
-TWILIO_WHATSAPP_NUMBER = "whatsapp:+14155238886"
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+TWILIO_WHATSAPP_NUMBER = os.getenv("TWILIO_WHATSAPP_NUMBER")
 twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 # Global for WhatsApp replies
